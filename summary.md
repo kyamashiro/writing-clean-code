@@ -38,6 +38,14 @@ https://qiita.com/disc99/items/adff7ed5c497ac2674f4
 良い名前に対して意識を持って取り組んでいくことが大切｡  
 知らないことは自分の中からは出てこないので､コードリーディングなどで知識を取り入れる必要がある｡  
 
+* リンク  
+サーチコード  
+https://searchcode.com/  
+GitHubのコード検索  
+https://github.com/search  
+略語検索  
+https://www.acronymfinder.com/  
+
 ## スコープ
 変数やメソッド､クラスが見える範囲のこと｡
 ｢見える｣とは使えるということ｡
@@ -161,6 +169,276 @@ public class FolderAction {
 対象の処理がアプリケーション全体で共通な場合は､オブジェクトに集約する｡
 
 ## 抽象化
+画像ファイルの一覧を表示するWebアプリで抽象化を実践｡
+Javaで書かれていたがPHPで書き直した｡
+仕様としてFood,Animal,Landscapeディレクトリごとのファイルサイズの合計と画像のファイル名を表示させるというもの｡
+
+~~~php
+class ImageListAction
+{
+    public $food_files = [];
+    public $animal_files = [];
+    public $lands_scape_files = [];
+    public $food_size;
+    public $animal_size;
+    public $land_scape_size;
+
+    public function actionResult()
+    {
+        //この部分がべた書き｡重複が多い
+        $this->food_files = glob('./data/images/food/*');
+        $this->animal_files = glob('./data/images/animal/*');
+        $this->lands_scape_files = glob('./data/images/landscape/*');
+        $this->food_size = $this->sizeOfFiles($this->food_files);
+        $this->animal_size = $this->sizeOfFiles($this->animal_files);
+        $this->land_scape_size = $this->sizeOfFiles($this->lands_scape_files);
+    }
+
+    public function sizeOfFiles($file): int
+    {
+        $totalSize = 0;
+        foreach ($file as $item) {
+            $totalSize = filesize($item);
+        }
+        return $totalSize;
+    }
+}
+~~~
+
+~~~html
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<h2>
+    Food Photos (<?= round($imagelist->food_size / 1024); ?>KB)
+</h2>
+<ul>
+    <?php foreach ($imagelist->food_files as $item): ?>
+        <li>
+            <?= basename($item) ?>
+        </li>
+    <?php endforeach; ?>
+</ul>
+<h2>
+    Animal Photos (<?= round($imagelist->animal_size / 1024); ?>KB)
+</h2>
+<ul>
+    <?php foreach ($imagelist->animal_files as $item): ?>
+        <li>
+            <?= basename($item) ?>
+        </li>
+    <?php endforeach; ?>
+</ul>
+<h2>
+    Landscape Photos (<?= round($imagelist->land_scape_size / 1024); ?>KB)
+</h2>
+<ul>
+    <?php foreach ($imagelist->lands_scape_files as $item): ?>
+        <li>
+            <?= basename($item) ?>
+        </li>
+    <?php endforeach; ?>
+</ul>
+</body>
+</html>
+~~~
+最初の段階ではべた書きで重複が多い｡またカテゴリが増えたときやjpgだけを表示するなどの変更があったときに書き換える部分が多く変更に弱い｡
+コードを抽象化して変更に強くする｡
+
+* メソッドの抽出
+
+~~~php
+class FileUtil
+{
+    public static function sizeOfFiles($file): int
+    {
+        $totalSize = 0;
+        foreach ($file as $item) {
+            $totalSize = filesize($item);
+        }
+        return $totalSize;
+    }
+}
+~~~
+
+sizeOfFilesメソッドはフィールド変数にアクセスしてないので､Utilクラスに移動させた｡
+
+* データ構造の整理
+
+~~~php
+class ImageListAction
+{
+    public $food_files = [];
+    public $animal_files = [];
+    public $lands_scape_files = [];
+    public function actionResult()
+    {
+        $this->food_files = $this->getFiles('./data/images/food/*');
+        $this->animal_files = $this->getFiles('./data/images/animal/*');
+        $this->lands_scape_files = $this->getFiles('./data/images/landscape/*');
+    }
+    private function getFiles(string $path): ImageFiles
+    {
+        $files = glob($path);
+        return new ImageFiles($files, FileUtil::sizeOfFiles($files));
+    }
+}
+~~~
+
+~~~php
+class ImageFiles
+{
+    private $files;
+    private $sizeOfFiles;
+    /**
+     * ImageFiles constructor.
+     * @param $files
+     * @param $sizeOfFiles
+     */
+    public function __construct($files, $sizeOfFiles)
+    {
+        $this->files = $files;
+        $this->sizeOfFiles = $sizeOfFiles;
+    }
+    /**
+     * @return mixed
+     */
+    public function getFiles()
+    {
+        return $this->files;
+    }
+    /**
+     * @return mixed
+     */
+    public function getSizeOfFiles()
+    {
+        return $this->sizeOfFiles;
+    }
+}
+~~~
+
+ファイル一覧とファイルサイズを持つImageFilesクラスを作成｡
+
+* 配列で抽象化
+
+~~~php
+class ImageListAction
+{
+    /**
+     * @var array
+     */
+    public $paths = [
+        'Food' => './data/images/food/*',
+        'Animal' => './data/images/animal/*',
+        'Landscape' => './data/images/landscape/*'
+    ];
+    /**
+     * @var
+     */
+    public $file_list;
+    /**
+     *
+     */
+    public function actionResult(): void
+    {
+        foreach ($this->paths as $pic_category => $path) {
+            $this->file_list[$pic_category] = $this->getFiles($path);
+        }
+    }
+    /**
+     * @param string $path
+     * @return ImageFiles
+     */
+    private function getFiles(string $path): ImageFiles
+    {
+        $files = glob($path);
+        return new ImageFiles($files, $path);
+    }
+}
+~~~
+
+~~~php
+class ImageFiles
+{
+    private $path;
+    private $files;
+    private $sizeOfFiles;
+    /**
+     * ImageFiles constructor.
+     * @param $files
+     * @param string $path
+     */
+    public function __construct(array $files, string $path)
+    {
+        $this->files = $files;
+        $this->path = $path;
+        $this->sizeOfFiles = FileUtil::sizeOfFiles($files);
+    }
+    /**
+     * @return string
+     */
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+    /**
+     * @return mixed
+     */
+    public function getFiles(): array
+    {
+        return $this->files;
+    }
+    /**
+     * @return mixed
+     */
+    public function getSizeOfFiles(): int
+    {
+        return $this->sizeOfFiles;
+    }
+}
+~~~
+
+~~~html
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<?php foreach ($imagelist->file_list as $pic_category => $list): ?>
+    <h2>
+        <?= $pic_category ?> Photos (<?= round($list->getSizeOfFiles() / 1024); ?>KB)
+    </h2>
+    <?php foreach ($list->getFiles() as $file_name) : ?>
+        <ul>
+            <li>
+                <?= basename($file_name) ?>
+            </li>
+        </ul>
+    <?php endforeach; ?>
+<?php endforeach; ?>
+</body>
+</html>
+~~~
+
+ImageListActionクラスでディレクトリのパスを連想配列として持たせ､foreachでパスを切り替えてImageFilesの生成を行いデータと処理を分離した｡
+ディレクトリが追加されてもパスを配列に追加すれば良い｡
+表示するviewもFood Photos,Animal Photosなど直接書いていたが､カテゴリを連想配列のキーにすることでループで処理できるようになった｡
+
+Interfaceやabstractを使えばもっとうまく整理できそうな気がする｡ImageFilesの上位のFileクラスとか｡  
+またUtilクラスにファイルの合計サイズを取得するメソッドを切り分けたのは､これがベストなんだろうか｡  
+まぁ､状態を持たないし､画像ファイルにかかわらずファイルサイズを取得できるから汎用的ではあるんだろうけど｡  
 
 
 
@@ -171,17 +449,3 @@ public class FolderAction {
 
 
 
-
-
-
-
-
-
-
-* リンク  
-サーチコード  
-https://searchcode.com/  
-GitHubのコード検索  
-https://github.com/search  
-略語検索  
-https://www.acronymfinder.com/  
