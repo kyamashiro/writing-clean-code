@@ -6,6 +6,8 @@
  * Time: 18:44
  */
 
+namespace App;
+
 class FileUtil
 {
     public static function sizeOfFiles($file): int

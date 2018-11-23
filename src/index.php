@@ -1,6 +1,7 @@
 <?php
-require_once "ImageListAction.php";
-$imagelist = new ImageListAction();
+ini_set('display_errors', "On");
+require '../vendor/autoload.php';
+$imagelist = new App\ImageListAction();
 $imagelist->actionResult();
 ?>
 
@@ -15,30 +16,30 @@ $imagelist->actionResult();
 </head>
 <body>
 <h2>
-    Food Photos (<?= round($imagelist->food_size / 1024); ?>KB)
+    Food Photos (<?= round($imagelist->food_files->getsizeOfFiles() / 1024); ?>KB)
 </h2>
 <ul>
-    <?php foreach ($imagelist->food_files as $item): ?>
+    <?php foreach ($imagelist->food_files->getFiles() as $item): ?>
         <li>
             <?= basename($item) ?>
         </li>
     <?php endforeach; ?>
 </ul>
 <h2>
-    Animal Photos (<?= round($imagelist->animal_size / 1024); ?>KB)
+    Animal Photos (<?= round($imagelist->animal_files->getsizeOfFiles()  / 1024); ?>KB)
 </h2>
 <ul>
-    <?php foreach ($imagelist->animal_files as $item): ?>
+    <?php foreach ($imagelist->animal_files->getFiles() as $item): ?>
         <li>
             <?= basename($item) ?>
         </li>
     <?php endforeach; ?>
 </ul>
 <h2>
-    Landscape Photos (<?= round($imagelist->land_scape_size / 1024); ?>KB)
+    Landscape Photos (<?= round($imagelist->lands_scape_files->getsizeOfFiles()  / 1024); ?>KB)
 </h2>
 <ul>
-    <?php foreach ($imagelist->lands_scape_files as $item): ?>
+    <?php foreach ($imagelist->lands_scape_files->getFiles() as $item): ?>
         <li>
             <?= basename($item) ?>
         </li>

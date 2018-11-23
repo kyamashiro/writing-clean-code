@@ -6,22 +6,24 @@
  * Time: 16:30
  */
 
+namespace App;
+
 class ImageListAction
 {
     public $food_files = [];
     public $animal_files = [];
     public $lands_scape_files = [];
-    public $food_size;
-    public $animal_size;
-    public $land_scape_size;
 
     public function actionResult()
     {
-        $this->food_files = glob('./data/images/food/*');
-        $this->animal_files = glob('./data/images/animal/*');
-        $this->lands_scape_files = glob('./data/images/landscape/*');
-        $this->food_size = $this->sizeOfFiles($this->food_files);
-        $this->animal_size = $this->sizeOfFiles($this->animal_files);
-        $this->land_scape_size = $this->sizeOfFiles($this->lands_scape_files);
+        $this->food_files = $this->getFiles('./data/images/food/*');
+        $this->animal_files = $this->getFiles('./data/images/animal/*');
+        $this->lands_scape_files = $this->getFiles('./data/images/landscape/*');
+    }
+
+    private function getFiles(string $path): ImageFiles
+    {
+        $files = glob($path);
+        return new ImageFiles($files, FileUtil::sizeOfFiles($files));
     }
 }
