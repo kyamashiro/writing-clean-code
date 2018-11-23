@@ -24,13 +24,4 @@ class ImageListAction
         $this->animal_size = $this->sizeOfFiles($this->animal_files);
         $this->land_scape_size = $this->sizeOfFiles($this->lands_scape_files);
     }
-
-    public function sizeOfFiles($file): int
-    {
-        $totalSize = 0;
-        foreach ($file as $item) {
-            $totalSize = filesize($item);
-        }
-        return $totalSize;
-    }
 }
