@@ -1,19 +1,19 @@
 #良いコードとはなにか
 
-### 良いコードの定義
+## 良いコードの定義
 1. 保守性が高い
 2. すばやく効率的に動作する
 3. 正確に動作する
 4. 無駄な部分がない
 
-### 良いコードの価値
+## 良いコードの価値
 * プロジェクトを強力に推し進める
 シンプルで保守性が高く､安定したコードを書くことは品質や生産性を倍に高める｡
 
-### 良い名前付け
+## 良い名前付け
 一貫性があり､説明的である｡意味や意図を理解しやすい｡
 
-### メソッド名
+## メソッド名
 メソッドは処理を行うので､｢動詞｣+｢目的語｣になっていることが多い｡  
 createXXX, makeXXXなど  
 https://qiita.com/Ted-HM/items/7dde25dcffae4cdc7923  
@@ -25,7 +25,7 @@ dateFormat.parseDateString("2018-01-01");
 この場合はparseで十分理解できる｡  
 dateFormat.parse("2018-01-01");  
 
-### クラス名
+## クラス名
 良い名前が浮かばないときはクラスの役割を整理できていない｡  
 複数の責務を担っていたり､役割が曖昧だったりする｡  
 * クラスの名前付け=設計
@@ -38,7 +38,7 @@ https://qiita.com/disc99/items/adff7ed5c497ac2674f4
 良い名前に対して意識を持って取り組んでいくことが大切｡  
 知らないことは自分の中からは出てこないので､コードリーディングなどで知識を取り入れる必要がある｡  
 
-### スコープ
+## スコープ
 変数やメソッド､クラスが見える範囲のこと｡
 ｢見える｣とは使えるということ｡
 ｢使える｣とは言い換えるとそれらに｢依存する｣ということ｡
@@ -74,7 +74,7 @@ public function getEmployee(Employee $emp)
 目安として引数の数が5つを超えるメソッドは引数をオブジェクトに検討するほうが良い｡
 https://twitter.com/xharaken/status/1065050626223042560
 
-### コードの分割
+## コードの分割
 ~~~
 private function createElement(Document $doc, string $nodeName, string $textContent, Element $parent)
 {
@@ -93,22 +93,74 @@ private function createElement(Document $doc, string $nodeName, string $textCont
 長い範囲で使用される状態を表すローカル変数があるとリファクタリングしにくい｡
 状態を持つローカル変数は処理自体をクラスに抽出する｡そして状態を表すローカル変数をフィールド変数に移動させる｡
 
-### コードの集約
-1. 継承でまとめる
+## コードの集約
+###1. 継承でまとめる
+
 重複コードをメソッドとして抽出し､親クラスに移動してまとめる｡
+
 * デメリット
     1. 親クラスが肥大化する｡
 親クラスはすべての子クラスに必要な共通の振る舞いのみをもたせる｡
     2. 単一継承の制限
 継承できる親クラスは1つのみ｡コードを広く共有するという意味では継承はそぐわない｡
 
-2. ユーティリティクラスにまとめる
+###2. ユーティリティクラスにまとめる
+
 ユーティリティクラスのメソッドは基本的に状態を持たない処理をstaticなメソッドとして定義する｡
 状態をもたせたり､DBへアクセスする必要があるときはサービス層にまとめる｡
 
-3. サービス層にまとめる
+###3. サービス層にまとめる
 
+レイヤ構造のアーキテクチャ
+Webコントローラ層→サービス層→データアクセス層
+Webコントローラ層にはアプリケーションの機能は書かずにサービス層を呼び出して処理を実行する｡
+~~~
+//ライセンスに関する処理を集めたサービスクラス
+public class LicenseService {
+    //DBからデータを取り出して判定をする処理など
+}
+~~~
 
+###4. オブジェクトにまとめる
+~~~
+//フォルダに関するクラス
+public class Folder {
+    public static final int TYPE_NORMAL = 0;
+    public static final int TYPE_SHARED = 1;
+    public int type;
+}
+
+//フォルダアクションクラス
+public class FolderAction {
+    //共有フォルダか判定する処理
+    public boolean isSharedFolder(Folder folder) {
+        return folder.type == TYPE_SHARED;
+    }
+}
+~~~
+isSharedFolderメソッドは常にFolderが必要になるので､処理自体をFolderクラスにまとめてオブジェクトのメソッドとしてまとめる｡
+~~~
+//フォルダに関するクラス
+public class Folder {
+    public static final int TYPE_NORMAL = 0;
+    public static final int TYPE_SHARED = 1;
+    public int type;
+    
+        //共有フォルダか判定する処理
+        public boolean isSharedFolder() {
+            return type == TYPE_SHARED;
+        }
+}
+
+//フォルダアクションクラス
+public class FolderAction {
+
+}
+~~~
+共有フォルダ化判定するメソッドをFolderクラスに移動して､FolderActionクラスでは呼び出すだけになった｡
+対象の処理がアプリケーション全体で共通な場合は､オブジェクトに集約する｡
+
+## 抽象化
 
 
 
