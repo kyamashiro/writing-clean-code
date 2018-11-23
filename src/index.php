@@ -15,35 +15,17 @@ $imagelist->actionResult();
     <title>Document</title>
 </head>
 <body>
-<h2>
-    Food Photos (<?= round($imagelist->food_files->getsizeOfFiles() / 1024); ?>KB)
-</h2>
-<ul>
-    <?php foreach ($imagelist->food_files->getFiles() as $item): ?>
-        <li>
-            <?= basename($item) ?>
-        </li>
+<?php foreach ($imagelist->file_list as $pic_category => $list): ?>
+    <h2>
+        <?= $pic_category ?> Photos (<?= round($list->getSizeOfFiles() / 1024); ?>KB)
+    </h2>
+    <?php foreach ($list->getFiles() as $file_name) : ?>
+        <ul>
+            <li>
+                <?= basename($file_name) ?>
+            </li>
+        </ul>
     <?php endforeach; ?>
-</ul>
-<h2>
-    Animal Photos (<?= round($imagelist->animal_files->getsizeOfFiles()  / 1024); ?>KB)
-</h2>
-<ul>
-    <?php foreach ($imagelist->animal_files->getFiles() as $item): ?>
-        <li>
-            <?= basename($item) ?>
-        </li>
-    <?php endforeach; ?>
-</ul>
-<h2>
-    Landscape Photos (<?= round($imagelist->lands_scape_files->getsizeOfFiles()  / 1024); ?>KB)
-</h2>
-<ul>
-    <?php foreach ($imagelist->lands_scape_files->getFiles() as $item): ?>
-        <li>
-            <?= basename($item) ?>
-        </li>
-    <?php endforeach; ?>
-</ul>
+<?php endforeach; ?>
 </body>
 </html>

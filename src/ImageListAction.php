@@ -10,20 +10,37 @@ namespace App;
 
 class ImageListAction
 {
-    public $food_files = [];
-    public $animal_files = [];
-    public $lands_scape_files = [];
+    /**
+     * @var array
+     */
+    public $paths = [
+        'Food' => './data/images/food/*',
+        'Animal' => './data/images/animal/*',
+        'Landscape' => './data/images/landscape/*'
+    ];
 
-    public function actionResult()
+    /**
+     * @var
+     */
+    public $file_list;
+
+    /**
+     *
+     */
+    public function actionResult(): void
     {
-        $this->food_files = $this->getFiles('./data/images/food/*');
-        $this->animal_files = $this->getFiles('./data/images/animal/*');
-        $this->lands_scape_files = $this->getFiles('./data/images/landscape/*');
+        foreach ($this->paths as $pic_category => $path) {
+            $this->file_list[$pic_category] = $this->getFiles($path);
+        }
     }
 
+    /**
+     * @param string $path
+     * @return ImageFiles
+     */
     private function getFiles(string $path): ImageFiles
     {
         $files = glob($path);
-        return new ImageFiles($files, FileUtil::sizeOfFiles($files));
+        return new ImageFiles($files, $path);
     }
 }

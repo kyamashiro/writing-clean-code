@@ -10,24 +10,34 @@ namespace App;
 
 class ImageFiles
 {
+    private $path;
     private $files;
     private $sizeOfFiles;
 
     /**
      * ImageFiles constructor.
      * @param $files
-     * @param $sizeOfFiles
+     * @param string $path
      */
-    public function __construct($files, $sizeOfFiles)
+    public function __construct(array $files, string $path)
     {
         $this->files = $files;
-        $this->sizeOfFiles = $sizeOfFiles;
+        $this->path = $path;
+        $this->sizeOfFiles = FileUtil::sizeOfFiles($files);
+    }
+
+    /**
+     * @return string
+     */
+    public function getPath(): string
+    {
+        return $this->path;
     }
 
     /**
      * @return mixed
      */
-    public function getFiles()
+    public function getFiles(): array
     {
         return $this->files;
     }
@@ -35,7 +45,7 @@ class ImageFiles
     /**
      * @return mixed
      */
-    public function getSizeOfFiles()
+    public function getSizeOfFiles(): int
     {
         return $this->sizeOfFiles;
     }
